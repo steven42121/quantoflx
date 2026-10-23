@@ -1,4 +1,5 @@
 [Variables]
+VidMemAdapter=1
 TotalVM=1
 
 SMLs.FreeVideoMemoryPer.Show=0
@@ -12,38 +13,20 @@ SMLs.UsedVideoMemoryPer.Sbtt=
 SMLs.UsedVideoMemoryPer.Sufx=
 
 [Ms.Registry.FreeVideoMemory]
-Measure=Registry
-RegHKey=HKEY_CURRENT_USER
-RegKey=Software\FinalWire\AIDA[#Is64bit_[#Is64bit]]\SensorValues
-RegValue=#SMLs.FreeVideoMemory.RSKN#
-RegExpSubstitute=1
-Substitute=#SMLs.FreeVideoMemory.Sbtt#
-Paused=(1-#SMLs.FreeVideoMemory.Show#)
-Disabled=(1-#SMLs.FreeVideoMemory.Show#)
+Measure=Calc
+Formula=Max(0,(Ms.Registry.TotalVideoMemory-Ms.Registry.UsedVideoMemory))
 DynamicVariables=1
-
 [Ms.Registry.UsedVideoMemory]
-Measure=Registry
-RegHKey=HKEY_CURRENT_USER
-RegKey=Software\FinalWire\AIDA[#Is64bit_[#Is64bit]]\SensorValues
-RegValue=#SMLs.UsedVideoMemory.RSKN#
-RegExpSubstitute=1
-Substitute=#SMLs.UsedVideoMemory.Sbtt#
-Paused=(1-#SMLs.UsedVideoMemory.Show#)
-Disabled=(1-#SMLs.UsedVideoMemory.Show#)
-DynamicVariables=1
-
+Measure=Plugin
+Plugin=UsageMonitor
+Alias=VRAM
+MinValue=0
 [Ms.Registry.TotalVideoMemory]
 Measure=Registry
-RegHKey=HKEY_CURRENT_USER
-RegKey=Software\FinalWire\AIDA[#Is64bit_[#Is64bit]]\SensorValues
-RegValue=#SMLs.TotalVideoMemory.RSKN#
-RegExpSubstitute=1
-Substitute=#SMLs.TotalVideoMemory.Sbtt#
-Paused=(1-#SMLs.TotalVideoMemory.Show#)
-Disabled=(1-#SMLs.TotalVideoMemory.Show#)
+RegHKey=HKEY_LOCAL_MACHINE
+RegKey=SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\000#VidMemAdapter#
+RegValue=HardwareInformation.qwMemorySize
 DynamicVariables=1
-
 [Ms.Registry.FreeVideoMemoryPer]
 Measure=Registry
 RegHKey=HKEY_CURRENT_USER
@@ -68,12 +51,12 @@ DynamicVariables=1
 
 [Ms.Calc.Free]
 Measure=Calc
-Formula=([Ms.Registry.FreeVideoMemory]*1024**#Unit#)
+Formula=Ms.Registry.FreeVideoMemory
 DynamicVariables=1
 
 [Ms.Calc.Used]
 Measure=Calc
-Formula=([Ms.Registry.UsedVideoMemory]*1024**#Unit#)
+Formula=Ms.Registry.UsedVideoMemory
 DynamicVariables=1
 
 [Ms.Calc.Total_0]
@@ -86,7 +69,7 @@ Paused=(#OperationMethod#<>0)
 Disabled=(#OperationMethod#<>0)
 [Ms.Calc.Total_1]
 Measure=Calc
-Formula=([Ms.Calc.Free]+[Ms.Calc.Used])
+Formula=Ms.Registry.TotalVideoMemory
 IfCondition=([Ms.Calc.Total_1]<>#TotalVM#)
 IfTrueAction=[!SetVariable "TotalVM" "[Ms.Calc.Total_1]"]
 DynamicVariables=1
@@ -127,7 +110,7 @@ Disabled=(#OperationMethod#<>5)
 
 [Ms.Calc.Percentage]
 Measure=Calc
-Formula=(([Ms.Calc.Used]/[&Ms.Calc.Total_[#OperationMethod]])*100)
+Formula=((Ms.Registry.TotalVideoMemory>0)?(([Ms.Calc.Used]/[&Ms.Calc.Total_[#OperationMethod]])*100):0)
 MinValue=0
 MaxValue=100
 DynamicVariables=1
